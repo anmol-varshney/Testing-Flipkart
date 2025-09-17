@@ -1,17 +1,23 @@
+# =====Local======
+# HEADERS = {
+#     "Fk-Affiliate-Id": "bh7162",
+#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+# }
+
 import streamlit as st
 import requests
 import pandas as pd
 import json
 from datetime import date, datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-import os
 import matplotlib.pyplot as plt
+from streamlit_cookies_manager import EncryptedCookieManager
 
 # =====Local======
-# HEADERS = {
-#     "Fk-Affiliate-Id": "bh7162",
-#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
-# }
+HEADERS = {
+    "Fk-Affiliate-Id": "bh7162",
+    "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+}
 
 # ===================== CONFIG(server) =====================
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
@@ -27,6 +33,14 @@ ORDER = [
     "pid", "affid", "store", "ssid", "otracker1",
     "ppn", "spotlightTagId"
 ]
+
+# ===================== COOKIES =====================
+cookies = EncryptedCookieManager(
+    prefix="flipkart_testing_app",
+    password="u8#sK92!dLxA0@vF9mZrQwT"  # change this to a strong secret key
+)
+if not cookies.ready():
+    st.stop()
 
 # ===================== HELPERS =====================
 def load_credentials():
@@ -104,6 +118,12 @@ def login():
 
     if login_clicked:
         if username in credentials and credentials[username][0] == password:
+            # Save in cookies
+            cookies["username"] = username
+            cookies["aff_ext_param1"] = credentials[username][1]
+            cookies.save()
+
+            # Update session state
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
             st.session_state["aff_ext_param1"] = credentials[username][1]
@@ -111,7 +131,15 @@ def login():
         else:
             st.error("Invalid username or password")
 
+def restore_login():
+    """Restore login state from cookies"""
+    if "username" in cookies and "aff_ext_param1" in cookies:
+        st.session_state["logged_in"] = True
+        st.session_state["username"] = cookies["username"]
+        st.session_state["aff_ext_param1"] = cookies["aff_ext_param1"]
+
 def logout():
+    cookies.clear()
     st.session_state.clear()
     st.rerun()
 
@@ -122,6 +150,10 @@ def main():
         layout="centered", 
         page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
     )
+
+    # Restore session from cookies if not already set
+    if not st.session_state.get("logged_in", False):
+        restore_login()
 
     if not st.session_state.get("logged_in", False):
         login()
