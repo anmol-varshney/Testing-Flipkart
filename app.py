@@ -73,16 +73,19 @@ def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
 def generate_affiliate_link(original_url: str) -> str:
     parsed = urlparse(original_url)
     query_params = parse_qs(parsed.query)
-    filtered = {k: v for k, v in query_params.items() if k in KEEP_PARAMS}
-    filtered["affid"] = [AFFILIATE_ID]
 
-    ordered_query = []
-    for key in ORDER:
-        if key in filtered:
-            ordered_query.append((key, filtered[key][0]))
+    # Always enforce affiliate ID
+    query_params["affid"] = [AFFILIATE_ID]
 
-    new_query = urlencode(ordered_query, doseq=True)
+    # If you want to also add user-specific affExtParam1
+    # if "aff_ext_param1" in st.session_state:
+    #     query_params["affExtParam1"] = [st.session_state["aff_ext_param1"]]
+
+    # Rebuild query preserving all params
+    new_query = urlencode(query_params, doseq=True)
+
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", new_query, ""))
+
 
 def shorten_with_tinyurl(url: str) -> str:
     api_url = f"http://tinyurl.com/api-create.php?url={url}"
