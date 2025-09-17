@@ -102,8 +102,8 @@ def visualize_data(df):
 
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", total_orders)
-    col2.metric("💰 Total Sales", f"₹{total_sales:,.2f}")
-    col3.metric("🏆 Total Commission", f"₹{total_commission:,.2f}")
+    col2.metric("","")#"💰 Total Sales", f"₹{total_sales:,.2f}")
+    col3.metric("","")#"🏆 Total Commission", f"₹{total_commission:,.2f}")
 
     st.markdown("---")
     st.subheader("🏅 Top Products by Sales")
