@@ -8,17 +8,13 @@ import os
 import matplotlib.pyplot as plt
 
 # =====Local======
-HEADERS = {
-    "Fk-Affiliate-Id": "bh7162",
-    "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
-}
+# HEADERS = {
+#     "Fk-Affiliate-Id": "bh7162",
+#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+# }
 
 # ===================== CONFIG(server) =====================
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
-# HEADERS = {
-#     "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
-#     "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
-# }
 
 # Affiliate Link Generator Settings
 AFFILIATE_ID = "bh7162"
@@ -36,36 +32,6 @@ ORDER = [
 def load_credentials():
     with open("credentials.json", "r") as file:
         return json.load(file)
-
-def save_login(username, aff_ext_param1):
-    """Save per-user login state in separate file"""
-    state_file = f"login_state_{username}.json"
-    with open(state_file, "w") as f:
-        json.dump({"logged_in": True, "username": username, "aff_ext_param1": aff_ext_param1}, f)
-
-def load_login(username):
-    """Load per-user login state"""
-    state_file = f"login_state_{username}.json"
-    if os.path.exists(state_file):
-        with open(state_file, "r") as f:
-            return json.load(f)
-    return {"logged_in": False}
-
-def clear_login(username):
-    """Clear per-user login state"""
-    state_file = f"login_state_{username}.json"
-    if os.path.exists(state_file):
-        os.remove(state_file)
-
-def restore_login():
-    """Restore login if session is new but file exists"""
-    if "logged_in" not in st.session_state:
-        credentials = load_credentials()
-        for user in credentials.keys():
-            state = load_login(user)
-            if state.get("logged_in", False):
-                st.session_state.update(state)
-                break
 
 def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
     params = {
@@ -98,7 +64,6 @@ def generate_affiliate_link(original_url: str) -> str:
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", new_query, ""))
 
 def shorten_with_tinyurl(url: str) -> str:
-    """Shorten a given URL using TinyURL free API."""
     api_url = f"http://tinyurl.com/api-create.php?url={url}"
     response = requests.get(api_url)
     if response.status_code == 200:
@@ -142,16 +107,11 @@ def login():
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
             st.session_state["aff_ext_param1"] = credentials[username][1]
-
-            # save login persistently for this user only
-            save_login(username, credentials[username][1])
             st.rerun()
         else:
             st.error("Invalid username or password")
-        
+
 def logout():
-    if "username" in st.session_state:
-        clear_login(st.session_state["username"])
     st.session_state.clear()
     st.rerun()
 
@@ -162,9 +122,6 @@ def main():
         layout="centered", 
         page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
     )
-
-    # Restore session if available
-    restore_login()
 
     if not st.session_state.get("logged_in", False):
         login()
