@@ -13,6 +13,13 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import matplotlib.pyplot as plt
 from streamlit_cookies_manager import EncryptedCookieManager
 
+# 🚨 MUST be the first Streamlit command
+st.set_page_config(
+    page_title="AdgamaDigital",
+    layout="centered",
+    page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
+)
+
 # =====Local======
 HEADERS = {
     "Fk-Affiliate-Id": "bh7162",
@@ -145,11 +152,6 @@ def logout():
 
 # ===================== MAIN =====================
 def main():
-    st.set_page_config(
-        page_title="AdgamaDigital", 
-        layout="centered", 
-        page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
-    )
 
     # Restore session from cookies if not already set
     if not st.session_state.get("logged_in", False):
