@@ -1,8 +1,3 @@
-# =====Local======
-# HEADERS = {
-#     "Fk-Affiliate-Id": "bh7162",
-#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
-# }
 
 import streamlit as st
 import requests
@@ -13,12 +8,14 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import matplotlib.pyplot as plt
 from streamlit_cookies_manager import EncryptedCookieManager
 
-# 🚨 MUST be the first Streamlit command
+
+# MUST be first Streamlit command
 st.set_page_config(
     page_title="AdgamaDigital",
     layout="centered",
     page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
 )
+
 
 # =====Local======
 HEADERS = {
@@ -143,24 +140,26 @@ def login():
 
 def restore_login():
     """Restore login state from cookies"""
-    if "username" in cookies and "aff_ext_param1" in cookies:
+    if cookies.get("username") and cookies.get("aff_ext_param1"):
         st.session_state["logged_in"] = True
         st.session_state["username"] = cookies["username"]
         st.session_state["aff_ext_param1"] = cookies["aff_ext_param1"]
 
+
 def logout():
-    # Clear cookies
-    cookies.pop("username", None)
-    cookies.pop("aff_ext_param1", None)
+    # Clear cookies properly
+    cookies["username"] = ""
+    cookies["aff_ext_param1"] = ""
     cookies.save()
 
-    # Clear only login-related session state
+    # Clear session state
     for key in ["logged_in", "username", "aff_ext_param1"]:
         if key in st.session_state:
             del st.session_state[key]
 
     st.success("✅ Logged out successfully")
     st.rerun()
+
 
 
 # ===================== MAIN =====================
