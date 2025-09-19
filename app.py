@@ -300,7 +300,7 @@ def main():
         if st.button("Generate Affiliate Link"):
             if original_url.strip():
                 affiliate_link = generate_affiliate_link(original_url)
-                # affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
+                affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
                 tiny_link = shorten_with_tinyurl(affiliate_link)
                 st.success("✅ Normal Affiliate Link Generated")
                 st.code(tiny_link, language="text")
