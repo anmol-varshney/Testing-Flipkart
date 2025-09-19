@@ -149,9 +149,19 @@ def restore_login():
         st.session_state["aff_ext_param1"] = cookies["aff_ext_param1"]
 
 def logout():
-    cookies.clear()
-    st.session_state.clear()
+    # Clear cookies
+    cookies.pop("username", None)
+    cookies.pop("aff_ext_param1", None)
+    cookies.save()
+
+    # Clear only login-related session state
+    for key in ["logged_in", "username", "aff_ext_param1"]:
+        if key in st.session_state:
+            del st.session_state[key]
+
+    st.success("✅ Logged out successfully")
     st.rerun()
+
 
 # ===================== MAIN =====================
 def main():
