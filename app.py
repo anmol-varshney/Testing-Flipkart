@@ -15,7 +15,7 @@ st.set_page_config(
     layout="centered",
     page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
 )
-
+st.write()
 
 # =====Local======
 HEADERS = {
@@ -67,21 +67,45 @@ def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
-def generate_affiliate_link(original_url: str) -> str:
-    parsed = urlparse(original_url)
+
+def generate_affiliate_link(url: str) -> str:
+    parsed = urlparse(url)
     query_params = parse_qs(parsed.query)
 
-    # Always enforce affiliate ID
+    # Add affiliate id
     query_params["affid"] = [AFFILIATE_ID]
 
-    # If you want to also add user-specific affExtParam1
-    # if "aff_ext_param1" in st.session_state:
-    #     query_params["affExtParam1"] = [st.session_state["aff_ext_param1"]]
+    # Decide if it's a product page or listing page
+    is_product = "/p/" in parsed.path
 
-    # Rebuild query preserving all params
-    new_query = urlencode(query_params, doseq=True)
+    # Keep only necessary params
+    keep_keys_product = ["pid", "lid", "marketplace", "store", "srno", "iid", 
+                         "ppt", "ppn", "ssid", "otracker1"]
+    keep_keys_listing = ["sid", "sort", "iid", "ctx", "cid", "otracker1", "p[]"]
 
-    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", new_query, ""))
+    if is_product:
+        filtered = {k: v for k, v in query_params.items() if k in keep_keys_product or k == "affid"}
+        # Order matters for product pages
+        order = ["marketplace", "iid", "ppt", "lid", "srno", "pid", "affid", 
+                 "store", "ssid", "otracker1", "ppn"]
+    else:
+        filtered = {k: v for k, v in query_params.items() if k in keep_keys_listing or k == "affid"}
+        # Order for listing pages
+        order = ["affid", "p[]", "sort", "iid", "ctx", "otracker1", "sid", "cid"]
+
+    # Reorder params
+    ordered_params = []
+    for k in order:
+        if k in filtered:
+            for val in filtered[k]:
+                ordered_params.append((k, val))
+
+    # Build final query string
+    final_query = urlencode(ordered_params, doseq=True)
+
+    # Rebuild final URL
+    final_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", final_query, ""))
+    return final_url
 
 
 def shorten_with_tinyurl(url: str) -> str:
@@ -276,7 +300,7 @@ def main():
         if st.button("Generate Affiliate Link"):
             if original_url.strip():
                 affiliate_link = generate_affiliate_link(original_url)
-                affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
+                # affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
                 tiny_link = shorten_with_tinyurl(affiliate_link)
                 st.success("✅ Normal Affiliate Link Generated")
                 st.code(tiny_link, language="text")
